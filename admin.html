@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ɢʜᴏꜱᴛ_ᴛᴠ ᴀᴅᴍɪɴ</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: #0b0e14;
+            color: #e8edf5;
+            min-height: 100vh;
+        }
+        /* লগইন */
+        .login-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at center, #141c2a, #070a0f);
+            padding: 16px;
+        }
+        .login-card {
+            background: rgba(20, 30, 48, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 32px;
+            padding: 40px 32px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+        }
+        .login-card .icon { text-align: center; font-size: 48px; color: #e50914; margin-bottom: 8px; }
+        .login-card h1 { font-size: 28px; font-weight: 800; color: #e50914; text-align: center; letter-spacing: 1px; }
+        .login-card .sub { text-align: center; color: #8a9bb5; font-size: 14px; margin-bottom: 28px; }
+        .login-card input {
+            width: 100%; background: #0e1624; border: 1px solid #1e2a3e; border-radius: 14px;
+            padding: 14px 18px; color: #fff; font-size: 15px; outline: none; transition: 0.2s;
+            margin-bottom: 14px;
+        }
+        .login-card input:focus { border-color: #e50914; box-shadow: 0 0 0 3px rgba(229,9,20,0.15); }
+        .login-card .login-btn {
+            width: 100%; background: #e50914; color: #fff; border: none; padding: 14px;
+            border-radius: 14px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.2s;
+        }
+        .login-card .login-btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .login-card .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .login-card .error { color: #ef4444; font-size: 13px; text-align: center; margin-top: 8px; display: none; }
+        .login-card .back-link { display: block; text-align: center; color: #6a7a8e; font-size: 13px; margin-top: 16px; text-decoration: none; }
+        .login-card .back-link:hover { color: #e50914; }
+
+        /* ড্যাশবোর্ড */
+        .dashboard { display: none; padding: 20px 16px 30px; max-width: 1280px; margin: 0 auto; }
+        .dashboard.active { display: block; }
+        .admin-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0 20px; border-bottom: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+        }
+        .admin-header .logo { font-size: 24px; font-weight: 800; color: #e50914; letter-spacing: 1px; }
+        .admin-header .logo span { color: #fff; font-weight: 300; }
+        .admin-header .user-info { display: flex; align-items: center; gap: 14px; }
+        .admin-header .user-info .email { font-size: 14px; color: #8a9bb5; }
+        .admin-header .user-info .logout-btn {
+            background: rgba(255,255,255,0.06); border: none; color: #c8d0dc;
+            padding: 8px 18px; border-radius: 30px; cursor: pointer; font-size: 13px; transition: 0.2s;
+        }
+        .admin-header .user-info .logout-btn:hover { background: rgba(229,9,20,0.2); color: #e50914; }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 14px; margin-bottom: 28px;
+        }
+        .stat-card {
+            background: rgba(20,30,48,0.6); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.04); border-radius: 18px;
+            padding: 18px 16px; text-align: center;
+        }
+        .stat-card .num { font-size: 32px; font-weight: 800; color: #e50914; }
+        .stat-card .label { font-size: 13px; color: #8a9bb5; margin-top: 2px; }
+
+        .tabs {
+            display: flex; gap: 6px; overflow-x: auto; padding-bottom: 16px;
+            margin-bottom: 20px; scrollbar-width: none; flex-wrap: nowrap;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.05);
+            color: #8a9bb5; padding: 8px 20px; border-radius: 30px;
+            font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s;
+        }
+        .tab.active { background: rgba(229,9,20,0.15); border-color: #e50914; color: #e50914; }
+        .tab:hover { background: rgba(229,9,20,0.08); }
+
+        .panel { display: none; animation: fadeUp 0.3s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card {
+            background: rgba(20,30,48,0.6); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.04); border-radius: 20px;
+            padding: 20px; margin-bottom: 20px;
+        }
+        .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; color: #e8edf5; display: flex; align-items: center; gap: 10px; }
+        .card h3 i { color: #e50914; }
+        .input-group { display: flex; flex-direction: column; gap: 10px; }
+        .input-group input, .input-group select {
+            background: #0e1624; border: 1px solid #1e2a3e; border-radius: 12px;
+            padding: 12px 16px; color: #fff; font-size: 14px; outline: none; width: 100%;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: #e50914; }
+        .input-group .checkbox-row { display: flex; gap: 20px; align-items: center; }
+        .input-group .checkbox-row label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #c8d0dc; }
+        .btn {
+            background: #e50914; color: #fff; border: none; padding: 10px 22px;
+            border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px;
+        }
+        .btn:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-outline { background: transparent; border: 1px solid #e50914; color: #e50914; }
+        .btn-outline:hover { background: rgba(229,9,20,0.1); }
+        .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+        .btn-green { background: #22c55e; border-color: #22c55e; }
+        .btn-danger { background: #ef4444; border-color: #ef4444; }
+
+        .item-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+        .item {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px;
+            border-left: 3px solid #e50914; gap: 8px; flex-wrap: wrap;
+        }
+        .item .info { flex: 1; min-width: 100px; }
+        .item .info .name { font-weight: 600; font-size: 14px; }
+        .item .info .sub { font-size: 12px; color: #8a9bb5; }
+        .item .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(229,9,20,0.92); color: #fff; padding: 12px 28px;
+            border-radius: 30px; font-size: 14px; font-weight: 500; z-index: 9999;
+            display: none; backdrop-filter: blur(8px); max-width: 90%;
+        }
+        @media (max-width:640px) {
+            .login-card { padding: 28px 20px; }
+            .admin-header .logo { font-size: 20px; }
+            .stat-card .num { font-size: 26px; }
+            .item { flex-direction: column; align-items: stretch; }
+            .item .actions { justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- লগইন পেজ -->
+    <div class="login-page" id="loginPage">
+        <div class="login-card">
+            <div class="icon"><i class="fas fa-ghost"></i></div>
+            <h1>ɢʜᴏꜱᴛ</h1>
+            <p class="sub">অ্যাডমিন প্যানেলে স্বাগতম</p>
+            <input type="email" id="adminEmail" placeholder="ইমেইল" />
+            <input type="password" id="adminPass" placeholder="পাসওয়ার্ড" />
+            <div class="error" id="loginError"></div>
+            <button class="login-btn" id="loginBtn" onclick="adminLogin()"><i class="fas fa-lock mr-2"></i> লগইন করুন</button>
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left mr-1"></i> ইউজার প্যানেলে যান</a>
+        </div>
+    </div>
+
+    <!-- ড্যাশবোর্ড -->
+    <div class="dashboard" id="dashboard">
+        <div class="admin-header">
+            <div class="logo">ɢʜᴏꜱᴛ<span>_ᴀᴅᴍɪɴ</span></div>
+            <div class="user-info">
+                <span class="email" id="adminEmailDisplay">admin@example.com</span>
+                <button class="logout-btn" onclick="adminLogout()"><i class="fas fa-sign-out-alt mr-1"></i> লগআউট</button>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="num" id="statMovies">0</div><div class="label">মুভি</div></div>
+            <div class="stat-card"><div class="num" id="statLive">0</div><div class="label">লাইভ টিভি</div></div>
+            <div class="stat-card"><div class="num" id="statUsers">0</div><div class="label">ইউজার</div></div>
+            <div class="stat-card"><div class="num" id="statSlides">0</div><div class="label">স্লাইড</div></div>
+        </div>
+
+        <div class="tabs" id="tabs">
+            <div class="tab active" data-tab="movies">🎬 মুভি</div>
+            <div class="tab" data-tab="livetv">📺 লাইভ টিভি</div>
+            <div class="tab" data-tab="slider">🖼️ স্লাইডার</div>
+            <div class="tab" data-tab="users">👥 ইউজার</div>
+        </div>
+
+        <!-- প্যানেল: মুভি -->
+        <div class="panel active" id="panel-movies">
+            <div class="card">
+                <h3><i class="fas fa-plus-circle"></i> নতুন মুভি যোগ করুন</h3>
+                <div class="input-group">
+                    <input type="text" id="movieName" placeholder="মুভির নাম" />
+                    <input type="text" id="movieLink" placeholder="ভিডিও লিংক (mp4/m3u8)" />
+                    <input type="text" id="movieLogo" placeholder="লোগো URL (ঐচ্ছিক)" />
+                    <input type="text" id="movieCat" placeholder="ক্যাটাগরি (যেমন: Hollywood)" />
+                    <div class="checkbox-row"><label><input type="checkbox" id="moviePremium" /> প্রিমিয়াম</label></div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn" onclick="addItem('movie')"><i class="fas fa-save mr-1"></i> যুক্ত করুন</button>
+                        <button class="btn btn-outline" onclick="clearForm('movie')">ক্লিয়ার</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3><i class="fas fa-list"></i> সব মুভি</h3>
+                <div class="item-list" id="movieList"></div>
+            </div>
+        </div>
+
+        <!-- প্যানেল: লাইভ টিভি -->
+        <div class="panel" id="panel-livetv">
+            <div class="card">
+                <h3><i class="fas fa-plus-circle"></i> নতুন চ্যানেল যোগ করুন</h3>
+                <div class="input-group">
+                    <input type="text" id="liveName" placeholder="চ্যানেলের নাম" />
+                    <input type="text" id="liveLink" placeholder="স্ট্রিম লিংক (m3u8/mp4)" />
+                    <input type="text" id="liveLogo" placeholder="লোগো URL" />
+                    <input type="text" id="liveCat" placeholder="ক্যাটাগরি" />
+                    <div class="checkbox-row"><label><input type="checkbox" id="livePremium" /> প্রিমিয়াম</label></div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn" onclick="addItem('livetv')"><i class="fas fa-save mr-1"></i> যুক্ত করুন</button>
+                        <button class="btn btn-outline" onclick="clearForm('livetv')">ক্লিয়ার</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3><i class="fas fa-list"></i> সব চ্যানেল</h3>
+                <div class="item-list" id="liveList"></div>
+            </div>
+        </div>
+
+        <!-- প্যানেল: স্লাইডার -->
+        <div class="panel" id="panel-slider">
+            <div class="card">
+                <h3><i class="fas fa-plus-circle"></i> নতুন স্লাইড যোগ করুন</h3>
+                <div class="input-group">
+                    <input type="text" id="slideImg" placeholder="ছবির URL" />
+                    <input type="text" id="slideTitle" placeholder="শিরোনাম" />
+                    <select id="slideType"><option value="movie">মুভি</option><option value="livetv">লাইভ টিভি</option></select>
+                    <input type="text" id="slideBadge" placeholder="ব্যাজ (যেমন: Movies)" />
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn" onclick="addSlide()"><i class="fas fa-save mr-1"></i> যুক্ত করুন</button>
+                        <button class="btn btn-outline" onclick="document.getElementById('slideImg').value='';document.getElementById('slideTitle').value='';document.getElementById('slideBadge').value='';">ক্লিয়ার</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h3><i class="fas fa-list"></i> সব স্লাইড</h3>
+                <div class="item-list" id="slideList"></div>
+            </div>
+        </div>
+
+        <!-- প্যানেল: ইউজার -->
+        <div class="panel" id="panel-users">
+            <div class="card">
+                <h3><i class="fas fa-users"></i> ইউজার লিস্ট</h3>
+                <div class="item-list" id="userList"></div>
+                <button class="btn btn-sm btn-outline mt-3" onclick="loadUsers()">🔄 রিফ্রেশ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===== FIREBASE =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyBW7EtBSaGq4BO4QuSy2unTJrMobQ3lIfU",
+            authDomain: "rs-tv-admin.firebaseapp.com",
+            databaseURL: "https://rs-tv-admin-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rs-tv-admin",
+            storageBucket: "rs-tv-admin.firebasestorage.app",
+            messagingSenderId: "619060422153",
+            appId: "1:619060422153:web:610a287d0a0dae0299fad8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        let currentAdmin = null;
+        let allData = { movie: [], livetv: [] };
+        let usersData = [];
+        let slidesData = [];
+
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.style.display = 'none', 2500);
+        }
+
+        // ===== AUTH =====
+        async function adminLogin() {
+            const email = document.getElementById('adminEmail').value.trim();
+            const pass = document.getElementById('adminPass').value.trim();
+            const err = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
+            err.style.display = 'none';
+            if (!email || !pass) { err.textContent = 'ইমেইল ও পাসওয়ার্ড দিন!'; err.style.display = 'block'; return; }
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> যাচাই...';
+            try {
+                const cred = await auth.signInWithEmailAndPassword(email, pass);
+                const snap = await db.ref('users/' + cred.user.uid).once('value');
+                const data = snap.val();
+                if (!data || data.role !== 'admin') {
+                    err.textContent = '⛔ আপনি অ্যাডমিন নন!';
+                    err.style.display = 'block';
+                    await auth.signOut();
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock mr-2"></i> লগইন করুন';
+                    return;
+                }
+                currentAdmin = cred.user;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                document.getElementById('adminEmailDisplay').textContent = cred.user.email;
+                await loadAllData();
+                renderAll();
+                toast('✅ স্বাগতম, অ্যাডমিন!');
+            } catch (error) {
+                let msg = 'লগইন ব্যর্থ!';
+                if (error.code === 'auth/user-not-found') msg = 'এই ইমেইলে কোনো অ্যাকাউন্ট নেই!';
+                else if (error.code === 'auth/wrong-password') msg = 'পাসওয়ার্ড ভুল!';
+                else if (error.code === 'auth/too-many-requests') msg = 'অনেক চেষ্টা করেছেন, পরে আবার চেষ্টা করুন।';
+                else msg = error.message || 'লগইন ব্যর্থ!';
+                err.textContent = msg;
+                err.style.display = 'block';
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock mr-2"></i> লগইন করুন';
+        }
+
+        function adminLogout() {
+            auth.signOut();
+            currentAdmin = null;
+            document.getElementById('loginPage').style.display = 'flex';
+            document.getElementById('dashboard').classList.remove('active');
+            toast('👋 লগআউট!');
+        }
+
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                const snap = await db.ref('users/' + user.uid).once('value');
+                const data = snap.val();
+                if (data && data.role === 'admin') {
+                    currentAdmin = user;
+                    document.getElementById('loginPage').style.display = 'none';
+                    document.getElementById('dashboard').classList.add('active');
+                    document.getElementById('adminEmailDisplay').textContent = user.email;
+                    await loadAllData();
+                    renderAll();
+                } else {
+                    if (user) auth.signOut();
+                }
+            }
+        });
+
+        // ===== DATA =====
+        async function loadDataType(type) {
+            try {
+                const snap = await db.ref(type).once('value');
+                const data = snap.val();
+                if (data) {
+                    const cats = [];
+                    for (const key in data) {
+                        const cat = data[key];
+                        if (cat && cat.name !== undefined) {
+                            const movies = [];
+                            if (cat.movies) {
+                                for (const mKey in cat.movies) {
+                                    const m = cat.movies[mKey];
+                                    if (m) movies.push({ id: mKey, name: m.name || '', link: m.link || '', logo: m.logo || '', premium: m.premium || false });
+                                }
+                            }
+                            cats.push({ id: key, name: cat.name || '', movies });
+                        }
+                    }
+                    allData[type] = cats;
+                } else { allData[type] = []; }
+            } catch (e) { allData[type] = []; }
+        }
+
+        async function loadUsers() {
+            try {
+                const snap = await db.ref('users').once('value');
+                const data = snap.val();
+                if (data) { usersData = []; for (const key in data) usersData.push({ id: key, ...data[key] }); }
+                else usersData = [];
+                renderUsers(); updateStats();
+            } catch (e) { usersData = []; }
+        }
+
+        async function loadSlides() {
+            try {
+                const snap = await db.ref('slider').once('value');
+                const data = snap.val();
+                if (data) { slidesData = []; for (const key in data) slidesData.push({ id: key, ...data[key] }); }
+                else slidesData = [];
+                renderSlides(); updateStats();
+            } catch (e) { slidesData = []; }
+        }
+
+        async function loadAllData() {
+            await Promise.all([loadDataType('movie'), loadDataType('livetv'), loadUsers(), loadSlides()]);
+        }
+
+        // ===== RENDER =====
+        function renderMovies() {
+            const container = document.getElementById('movieList');
+            container.innerHTML = '';
+            (allData.movie || []).forEach(cat => {
+                (cat.movies || []).forEach(m => {
+                    container.innerHTML += `
+                        <div class="item">
+                            <div class="info"><div class="name">${m.name}</div><div class="sub">${cat.name} ${m.premium ? '🔒' : ''}</div></div>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-green" onclick="editItem('movie','${cat.id}','${m.id}')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteItem('movie','${cat.id}','${m.id}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+            if (!container.innerHTML) container.innerHTML = '<div class="text-gray-500 text-center py-4">কোন মুভি নেই</div>';
+        }
+
+        function renderLive() {
+            const container = document.getElementById('liveList');
+            container.innerHTML = '';
+            (allData.livetv || []).forEach(cat => {
+                (cat.movies || []).forEach(m => {
+                    container.innerHTML += `
+                        <div class="item">
+                            <div class="info"><div class="name">${m.name}</div><div class="sub">${cat.name} ${m.premium ? '🔒' : ''}</div></div>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-green" onclick="editItem('livetv','${cat.id}','${m.id}')"><i class="fas fa-edit"></i></button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteItem('livetv','${cat.id}','${m.id}')"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+            if (!container.innerHTML) container.innerHTML = '<div class="text-gray-500 text-center py-4">কোন চ্যানেল নেই</div>';
+        }
+
+        function renderSlides() {
+            const container = document.getElementById('slideList');
+            container.innerHTML = '';
+            slidesData.forEach(s => {
+                container.innerHTML += `
+                    <div class="item">
+                        <div class="info"><div class="name">${s.title || '—'}</div><div class="sub">${s.type} ${s.badge ? '🏷️ '+s.badge : ''}</div></div>
+                        <div class="actions">
+                            <button class="btn btn-sm btn-danger" onclick="deleteSlide('${s.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            if (!container.innerHTML) container.innerHTML = '<div class="text-gray-500 text-center py-4">কোন স্লাইড নেই</div>';
+        }
+
+        function renderUsers() {
+            const container = document.getElementById('userList');
+            container.innerHTML = '';
+            usersData.forEach(u => {
+                const isAdmin = u.role === 'admin';
+                const expired = u.expiry && u.expiry < Date.now();
+                container.innerHTML += `
+                    <div class="item">
+                        <div class="info"><div class="name">${u.email || u.id} ${isAdmin ? '👑' : ''}</div><div class="sub">${expired ? '⛔ মেয়াদ শেষ' : '✅ সক্রিয়'} ${u.deviceId || ''}</div></div>
+                        <div class="actions">
+                            ${!isAdmin ? `<button class="btn btn-sm btn-green" onclick="makeAdmin('${u.id}')"><i class="fas fa-user-cog"></i></button>` : ''}
+                            ${!isAdmin ? `<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')"><i class="fas fa-trash"></i></button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            if (!container.innerHTML) container.innerHTML = '<div class="text-gray-500 text-center py-4">কোন ইউজার নেই</div>';
+        }
+
+        function updateStats() {
+            const movieCount = allData.movie.reduce((acc, c) => acc + (c.movies || []).length, 0);
+            const liveCount = allData.livetv.reduce((acc, c) => acc + (c.movies || []).length, 0);
+            document.getElementById('statMovies').textContent = movieCount;
+            document.getElementById('statLive').textContent = liveCount;
+            document.getElementById('statUsers').textContent = usersData.length;
+            document.getElementById('statSlides').textContent = slidesData.length;
+        }
+
+        function renderAll() {
+            renderMovies(); renderLive(); renderSlides(); renderUsers(); updateStats();
+        }
+
+        // ===== CRUD =====
+        async function addItem(type) {
+            if (!currentAdmin) { toast('⛔ লগইন করুন!'); return; }
+            const prefix = type === 'movie' ? 'movie' : 'live';
+            const name = document.getElementById(`${prefix}Name`).value.trim();
+            const link = document.getElementById(`${prefix}Link`).value.trim();
+            const logo = document.getElementById(`${prefix}Logo`).value.trim();
+            const cat = document.getElementById(`${prefix}Cat`).value.trim();
+            const premium = document.getElementById(`${prefix}Premium`).checked;
+            if (!name || !link) { toast('⚠️ নাম ও লিংক দিতে হবে!'); return; }
+            if (!cat) { toast('⚠️ ক্যাটাগরি দিতে হবে!'); return; }
+            try {
+                let catRef = db.ref(`${type}/${cat}`);
+                let snap = await catRef.once('value');
+                if (!snap.exists()) await catRef.set({ name: cat });
+                await catRef.child('movies').push().set({ name, link, logo: logo || '', premium, createdAt: Date.now() });
+                toast(`✅ "${name}" যোগ করা হয়েছে!`);
+                clearForm(type);
+                await loadDataType(type);
+                renderAll();
+            } catch (e) { toast('❌ যোগ ব্যর্থ! ' + e.message); }
+        }
+
+        async function deleteItem(type, catId, itemId) {
+            if (!currentAdmin) { toast('⛔ লগইন করুন!'); return; }
+            if (!confirm('মুছে ফেলবেন?')) return;
+            try {
+                await db.ref(`${type}/${catId}/movies/${itemId}`).remove();
+                toast('🗑️ মুছে ফেলা হয়েছে!');
+                await loadDataType(type);
+                renderAll();
+            } catch (e) { toast('❌ মুছতে ব্যর্থ!'); }
+        }
+
+        async function editItem(type, catId, itemId) {
+            if (!currentAdmin) { toast('⛔ লগইন করুন!'); return; }
+            const cats = allData[type] || [];
+            let movie = null;
+            for (const c of cats) {
+                if (c.id === catId) {
+                    const m = (c.movies || []).find(m => m.id === itemId);
+                    if (m) movie = m; break;
+                }
+            }
+            if (!movie) { toast('❌ পাওয়া যায়নি!'); return; }
+            const newName = prompt('নতুন নাম:', movie.name);
+            if (newName === null || !newName.trim()) return;
+            try {
+                await db.ref(`${type}/${catId}/movies/${itemId}/name`).set(newName.trim());
+                toast('✅ নাম আপডেট!');
+                await loadDataType(type);
+                renderAll();
+            } catch (e) { toast('❌ আপডেট ব্যর্থ!'); }
+        }
+
+        function clearForm(type) {
+            const prefix = type === 'movie' ? 'movie' : 'live';
+            document.getElementById(`${prefix}Name`).value = '';
+            document.getElementById(`${prefix}Link`).value = '';
+            document.getElementById(`${prefix}Logo`).value = '';
+            document.getElementById(`${prefix}Cat`).value = '';
+            document.getElementById(`${prefix}Premium`).checked = false;
+        }
+
+        async function addSlide() {
+            if (!currentAdmin) { toast('⛔ লগইন করুন!'); return; }
+            const img = document.getElementById('slideImg').value.trim();
+            const title = document.getElementById('slideTitle').value.trim();
+            const type = document.getElementById('slideType').value;
+            const badge = document.getElementById('slideBadge').value.trim();
+            if (!img || !title) { toast('⚠️ ছবি ও শিরোনাম দিতে হবে!'); return; }
+            try {
+                await db.ref('slider').push().set({ img, title, type, badge: badge || '', createdAt: Date.now() });
+                toast('✅ স্লাইড যোগ!');
+                document.getElementById('slideImg').value = '';
+                document.getElementById('slideTitle').value = '';
+                document.getElementById('slideBadge').value = '';
+                await loadSlides();
+                renderAll();
+            } catch (e) { toast('❌ যোগ ব্যর্থ!'); }
+        }
+
+        async function deleteSlide(id) {
+            if (!currentAdmin) { toast('⛔ লগইন করুন!'); return; }
+            if (!confirm('স্লাইড মুছবেন?')) return;
+            try {
+                await db.ref('slider/' + id).remove();
+                toast('🗑️ স্লাইড মুছে ফেলা হয়েছে!');
+                await loadSlides();
+                renderAll();
+            } catch (e) { toast('❌ মুছতে ব্যর্থ!'); }
+        }
+
+        async function makeAdmin(id) {
+            if (!currentAdmin) { toast('⛔ লগইন করুন!'); return; }
+            if (!confirm('অ্যাডমিন বানাবেন?')) return;
+            try {
+                await db.ref('users/' + id + '/role').set('admin');
+                toast('✅ অ্যাডমিন করা হয়েছে!');
+                await loadUsers();
+                renderAll();
+            } catch (e) { toast('❌ ব্যর্থ!'); }
+        }
+
+        async function deleteUser(id) {
+            if (!currentAdmin) { toast('⛔ লগইন করুন!'); return; }
+            if (id === currentAdmin.uid) { toast('⚠️ নিজেকে মুছতে পারবেন না!'); return; }
+            if (!confirm('ইউজার মুছবেন?')) return;
+            try {
+                await db.ref('users/' + id).remove();
+                toast('🗑️ ইউজার মুছে ফেলা হয়েছে!');
+                await loadUsers();
+                renderAll();
+            } catch (e) { toast('❌ মুছতে ব্যর্থ!'); }
+        }
+
+        // ===== TABS =====
+        document.addEventListener('click', function(e) {
+            const tab = e.target.closest('.tab');
+            if (!tab) return;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            const panel = document.getElementById('panel-' + tab.dataset.tab);
+            if (panel) panel.classList.add('active');
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const loginPage = document.getElementById('loginPage');
+                if (loginPage.style.display !== 'none') { adminLogin(); }
+            }
+        });
+
+        // ===== INIT =====
+        loadAllData().then(renderAll);
+    </script>
+</body>
+</html>
