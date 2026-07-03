@@ -163,40 +163,45 @@
       transform: scale(1) translateY(0);
     }
 
-    /* ===== পোস্টার : মোবাইলে ৩টি ঠিকমতো দেখাতে ===== */
+    /* ===== পোস্টার : নতুন আপডেটেড ডিজাইন (জুম আউট) ===== */
     .poster {
       transition: all 0.25s ease;
       will-change: transform;
       flex-shrink: 0;
-      width: 110px;
-      max-width: 110px;
+      width: 100px;          /* আগে 110px ছিল, একটু ছোট */
+      max-width: 100px;
       cursor: pointer;
       position: relative;
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
+      background: #141b26;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     @media (min-width: 640px) {
       .poster {
-        width: 140px;
-        max-width: 140px;
+        width: 125px;
+        max-width: 125px;
       }
     }
     @media (min-width: 1024px) {
       .poster {
-        width: 170px;
-        max-width: 170px;
+        width: 150px;
+        max-width: 150px;
       }
     }
 
     .poster:hover {
-      transform: scale(1.05);
+      transform: scale(1.03);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      border-color: rgba(229, 9, 20, 0.4);
     }
 
     .scroll-row {
       scrollbar-width: none;
       overflow-x: auto;
       display: flex;
-      gap: 12px;
+      gap: 10px;            /* আগে 12px ছিল, একটু কম */
       padding: 4px 2px 12px 2px;
       -webkit-overflow-scrolling: touch;
       flex-wrap: nowrap;
@@ -206,28 +211,29 @@
     }
 
     .poster-img {
-      aspect-ratio: 2 / 2.85;
+      aspect-ratio: 2 / 2.8;
       object-fit: cover;
-      border-radius: 14px;
+      border-radius: 12px 12px 0 0;
       width: 100%;
       min-width: 100%;
       background: #1e293b;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       display: block;
     }
     .poster-name {
-      margin-top: 6px;
+      padding: 6px 4px 8px;
       text-align: center;
-      font-size: 13px;
-      font-weight: 500;
+      font-size: 12px;
+      font-weight: 600;
       line-height: 1.3;
       color: #e2e8f0;
-      padding: 0 2px;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      background: rgba(0, 0, 0, 0.2);
+      min-height: 36px;
       transition: color 0.15s ease;
+      letter-spacing: 0.2px;
     }
 
     /* ===== বাকি সব স্টাইল অপরিবর্তিত ===== */
@@ -607,25 +613,25 @@
     }
     .fav-heart-badge {
       position: absolute;
-      bottom: 44px;
+      bottom: 38px;    /* নামের ওপরের অবস্থান ঠিক করতে */
       right: 4px;
       background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(4px);
       border-radius: 30px;
       padding: 2px 8px;
-      font-size: 12px;
+      font-size: 11px;
       color: #ef4444;
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
     .premium-badge {
       position: absolute;
-      top: 6px;
-      right: 6px;
+      top: 4px;
+      right: 4px;
       background: #f59e0b;
       color: #000;
       font-weight: 800;
-      font-size: 9px;
-      padding: 2px 8px;
+      font-size: 8px;
+      padding: 2px 6px;
       border-radius: 30px;
       letter-spacing: 0.5px;
       box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
@@ -800,7 +806,6 @@
         </div>
       </div>
 
-      <!-- ====== সাইডবার মেনু (স্ক্রিনশট অনুযায়ী) ====== -->
       <a href="#" onclick="changePage('home'); toggleSidebar();"><i class="fas fa-home"></i> হোম</a>
       <a href="#" onclick="changePage('movie'); toggleSidebar();"><i class="fas fa-film"></i> মুভি</a>
       <a href="#" onclick="changePage('livetv'); toggleSidebar();"><i class="fas fa-tv"></i> লাইভ টিভি</a>
@@ -813,7 +818,6 @@
         <input type="checkbox" id="adultVisibilityToggle" onchange="toggleAdultNavVisibility(this.checked)" class="w-5 h-5 accent-red-600 cursor-pointer">
       </div>
 
-      <!-- ====== এই তিনটি অপশন প্রথম স্ক্রিনশটের মতো ====== -->
       <a href="#" onclick="changePage('problemfix'); toggleSidebar();"><i class="fas fa-wrench"></i> Ghost Problem Fix</a>
       <a href="#" onclick="changePage('declar-mode'); toggleSidebar();"><i class="fas fa-adjust"></i> ডেক্লা মোড</a>
       <a href="#" onclick="changePage('apk'); toggleSidebar();"><i class="fas fa-download"></i> Ghost Tv Apk</a>
@@ -875,7 +879,6 @@
     <section id="livetv" class="page-section"><div class="pt-6 px-2 max-w-full mx-auto" id="content-livetv"></div></section>
     <section id="adult" class="page-section"><div class="pt-6 px-2 max-w-full mx-auto" id="content-adult"></div></section>
 
-    <!-- ====== নতুন পেজ সেকশন (Problem Fix, Declar Mode, Apk) ====== -->
     <section id="problemfix" class="page-section">
       <div class="pt-6 px-2 max-w-full mx-auto">
         <h2 class="text-xl font-bold text-red-500 mb-4">Ghost Problem Fix</h2>
@@ -2111,4 +2114,4 @@
     window.onload = initPortal;
   </script>
 </body>
-  </html>
+</html>
